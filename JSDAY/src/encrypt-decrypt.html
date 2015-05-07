@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Web Cryptography API - Encrypt / Decrypt </title>
+</head>
+
+<body>
+  <script>
+  
+  function hexStringToUint8Array(hexString)
+{
+    if (hexString.length % 2 != 0)
+        throw "Invalid hexString";
+    var arrayBuffer = new Uint8Array(hexString.length / 2);
+
+    for (var i = 0; i < hexString.length; i += 2) {
+        var byteValue = parseInt(hexString.substr(i, 2), 16);
+        if (byteValue == NaN)
+            throw "Invalid hexString";
+        arrayBuffer[i/2] = byteValue;
+    }
+
+    return arrayBuffer;
+}
+
+// Builds a hex string representation for an array-like input.
+// "bytes" can be an Array of bytes, an ArrayBuffer, or any TypedArray.
+// The output looks like this:
+//    ab034c99
+function bytesToHexString(bytes)
+{
+    if (!bytes)
+        return null;
+
+    bytes = new Uint8Array(bytes);
+    var hexBytes = [];
+
+    for (var i = 0; i < bytes.length; ++i) {
+        var byteString = bytes[i].toString(16);
+        if (byteString.length < 2)
+            byteString = "0" + byteString;
+        hexBytes.push(byteString);
+    }
+
+    return hexBytes.join("");
+}
+
+    var pubKey;
+    var privKey;
+    var data = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]); // The data to be signed.
+    var encryptedData;
+    var decryptedData;
+    var crypto = window.crypto || window.msCrypto;
+
+	var kAesCbcSuccessVectors = [
+  // 256-bit key, where final block of plaintext has to pad by 3.
+  // Derived from [1] F.2.6 CBC-AES256.Decrypt, by stripping 3 bytes off
+  // plaintext and adding padding block.
+  {
+    key: "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4",
+    iv: "000102030405060708090a0b0c0d0e0f",
+    plainText: "abcdef0123456789",
+    cipherText: "7bd2842b50750e40d52ca4dc68bdbbe8"
+  },
+
+];
+
+	var key = null;
+	
+	var algorithm = {name: 'AES-CBC', iv: hexStringToUint8Array(kAesCbcSuccessVectors[0].iv)};
+    var keyData = hexStringToUint8Array(kAesCbcSuccessVectors[0].key);
+    var usages = ['encrypt', 'decrypt'];
+    var extractable = true;
+
+    if (crypto.subtle) {
+
+	// (1) Import the key
+   crypto.subtle.importKey('raw', keyData, algorithm, extractable, usages).then(function(result) {
+        key = result;
+		console.log("Key:"+key);
+		console.log(key);
+
+    // (2) Encrypt.
+    crypto.subtle.encrypt(algorithm, key, hexStringToUint8Array(kAesCbcSuccessVectors[0].plainText)).then(function(resultEncrypt) {
+		var data = new Uint8Array(resultEncrypt);
+		console.log("Encrypt:"+bytesToHexString(resultEncrypt));
+    // (3) Decrypt
+    crypto.subtle.decrypt(algorithm, key, hexStringToUint8Array(kAesCbcSuccessVectors[0].cipherText)).then(function(resultDecrypt) {
+		var data = new Uint8Array(resultDecrypt);
+		console.log("Decrypt:"+bytesToHexString(resultDecrypt));
+
+    });
+	});
+	});
+	
+
+    } else {
+      console.log("Unable to create window.crypto object");
+    } // if-else, (crypto.subtle)
+	
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>window.crypto.SHA-256</title>
+  </head>
+  <body>
+    <script>
+	function bytesToHexString(bytes)
+{
+    if (!bytes)
+        return null;
+
+    bytes = new Uint8Array(bytes);
+    var hexBytes = [];
+
+    for (var i = 0; i < bytes.length; ++i) {
+        var byteString = bytes[i].toString(16);
+        if (byteString.length < 2)
+            byteString = "0" + byteString;
+        hexBytes.push(byteString);
+    }
+
+    return hexBytes.join("");
+}
+
+
+				var data = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+			 
+                window.crypto.subtle.digest("SHA-256",data)
+				.then(function (digest){
+					console.log(bytesToHexString(digest));
+                });
+            
+        
+     
+    </script>
+  </body>
+</html>
